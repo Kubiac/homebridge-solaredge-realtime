@@ -1,6 +1,6 @@
 import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
 
-import { ExampleHomebridgePlatform } from './platform';
+import { SolaredgeRealTimePlatform } from './platform';
 
 /**
  * Platform Accessory
@@ -20,7 +20,7 @@ export class ExamplePlatformAccessory {
   };
 
   constructor(
-    private readonly platform: ExampleHomebridgePlatform,
+    private readonly platform: SolaredgeRealTimePlatform,
     private readonly accessory: PlatformAccessory,
   ) {
 

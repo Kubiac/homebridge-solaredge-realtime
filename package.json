@@ -1,16 +1,16 @@
 {
   "private": true,
-  "displayName": "Plugin Name",
-  "name": "homebridge-plugin-name",
+  "displayName": "Solaredge Real Time Monitoring",
+  "name": "homebridge-solaredge-realtime",
   "version": "1.0.0",
-  "description": "A short description about what your plugin does.",
+  "description": "With this plugin you can read the current power output of you solaredge inverter via Modbus in arbitrary intervals.",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git://github.com/USERNAME/GITHUB_PROJECT_NAME.git"
+    "url": "git://github.com/kubiac/homebridge-solaredge-realtime.git"
   },
   "bugs": {
-    "url": "https://github.com/USERNAME/GITHUB_PROJECT_NAME/issues"
+    "url": "https://github.com/kubiac/homebridge-solaredge-realtime/issues"
   },
   "engines": {
     "node": ">=14.18.1",
