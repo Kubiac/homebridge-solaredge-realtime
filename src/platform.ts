@@ -1,7 +1,7 @@
-import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
+import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic} from 'homebridge';
 
-import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
-import { ExamplePlatformAccessory } from './platformAccessory';
+import {PLATFORM_NAME, PLUGIN_NAME} from './settings';
+import {SolaredgeInverter} from './solaredgeInverter';
 
 /**
  * HomebridgePlatform
@@ -27,8 +27,14 @@ export class SolaredgeRealTimePlatform implements DynamicPlatformPlugin {
     // in order to ensure they weren't added to homebridge already. This event can also be used
     // to start discovery of new accessories.
     this.api.on('didFinishLaunching', () => {
+      log.info('loaded Config: ' + this.config.message);
       log.debug('Executed didFinishLaunching callback');
       // run the method to discover / register your devices as accessories
+      let accessory: PlatformAccessory | undefined;
+      while ((accessory = this.accessories.pop()) !== undefined) {
+        this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+      }
+
       this.discoverDevices();
     });
   }
@@ -57,11 +63,7 @@ export class SolaredgeRealTimePlatform implements DynamicPlatformPlugin {
     const exampleDevices = [
       {
         exampleUniqueId: 'ABCD',
-        exampleDisplayName: 'Bedroom',
-      },
-      {
-        exampleUniqueId: 'EFGH',
-        exampleDisplayName: 'Kitchen',
+        exampleDisplayName: 'Inverter',
       },
     ];
 
@@ -86,8 +88,8 @@ export class SolaredgeRealTimePlatform implements DynamicPlatformPlugin {
         // this.api.updatePlatformAccessories([existingAccessory]);
 
         // create the accessory handler for the restored accessory
-        // this is imported from `platformAccessory.ts`
-        new ExamplePlatformAccessory(this, existingAccessory);
+        // this is imported from `solaredgeInverter.ts`
+        new SolaredgeInverter(this, existingAccessory);
 
         // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
         // remove platform accessories when no longer present
@@ -105,8 +107,8 @@ export class SolaredgeRealTimePlatform implements DynamicPlatformPlugin {
         accessory.context.device = device;
 
         // create the accessory handler for the newly create accessory
-        // this is imported from `platformAccessory.ts`
-        new ExamplePlatformAccessory(this, accessory);
+        // this is imported from `solaredgeInverter.ts`
+        new SolaredgeInverter(this, accessory);
 
         // link the accessory to your platform
         this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
