@@ -11,6 +11,9 @@ import ModbusRTU from 'modbus-serial';
  */
 export class SolaredgeInverter {
   private service: Service;
+  host = this.platform.config.ip;
+  port = this.platform.config.port || 1502;
+  updateInterval = this.platform.config.updateInterval || 60;
 
   constructor(
     private readonly platform: SolaredgeRealTimePlatform,
@@ -42,7 +45,7 @@ export class SolaredgeInverter {
 
       this.service.updateCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, power);
       this.platform.log.debug('Updating Ambient Light Level: ', power);
-    }, this.platform.config.updateInterval * 1000);
+    }, this.updateInterval * 1000);
   }
 
   private getCurrentPower() {
@@ -50,14 +53,11 @@ export class SolaredgeInverter {
 
     let currentPower = 0.0001;
 
-    const host = this.platform.config.ip;
-    const port = this.platform.config.port || 1502;
-
     const networkErrors = ['ESOCKETTIMEDOUT', 'ETIMEDOUT', 'ECONNRESET', 'ECONNREFUSED', 'EHOSTUNREACH'];
 
     // try to connect
-    this.platform.log.debug('Connecting to', host);
-    client.connectTCP(host, {port: port}).then(setClient)
+    this.platform.log.debug('Connecting to', this.host);
+    client.connectTCP(this.host, {port: this.port}).then(setClient)
       .then(() => {
         this.platform.log.debug('Connected');
       })
@@ -94,7 +94,7 @@ export class SolaredgeInverter {
 
     const close = () => {
       client.close(() => {
-        this.platform.log.debug('closed connection to', host);
+        this.platform.log.debug('closed connection to', this.host);
       });
     };
 

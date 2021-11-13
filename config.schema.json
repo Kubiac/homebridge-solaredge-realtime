@@ -5,11 +5,23 @@
   "schema": {
     "type": "object",
     "properties": {
-      "name": {
-        "title": "Name",
+      "ip": {
+        "title": "ip",
         "type": "string",
         "required": true,
-        "default": "Example Dynamic Platform"
+        "default": "192.168.1.42"
+      },
+      "port": {
+        "title": "port",
+        "type": "number",
+        "required": false,
+        "default": "1502"
+      },
+      "updateInterva;": {
+        "title": "updateInterval",
+        "type": "number",
+        "required": false,
+        "default": "10"
       }
     }
   }
