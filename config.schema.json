@@ -5,6 +5,12 @@
   "schema": {
     "type": "object",
     "properties": {
+      "name": {
+        "title": "Name",
+        "type": "string",
+        "required": true,
+        "default": "SolaredgeRealTime"
+      },
       "ip": {
         "title": "IP-Address",
         "type": "string",
@@ -15,7 +21,7 @@
         "title": "Port",
         "type": "number",
         "required": false,
-        "default": "1502"
+        "default": ""
       },
       "updateInterval": {
         "title": "Update Interval",
