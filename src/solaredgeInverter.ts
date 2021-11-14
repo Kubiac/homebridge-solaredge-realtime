@@ -11,14 +11,19 @@ import ModbusRTU from 'modbus-serial';
  */
 export class SolaredgeInverter {
   private service: Service;
-  host = this.platform.config.ip;
-  port = this.platform.config.port || 1502;
-  updateInterval = this.platform.config.updateInterval || 60;
+  private readonly host;
+  private readonly port;
+  private readonly updateInterval;
+  private currentPower = 0.0001;
 
   constructor(
     private readonly platform: SolaredgeRealTimePlatform,
     private readonly accessory: PlatformAccessory,
   ) {
+    // load all information from context
+    this.host = accessory.context.device.ip;
+    this.port = accessory.context.device.port || 1502;
+    this.updateInterval = accessory.context.device.updateInterval || 60;
 
     // set accessory information
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
@@ -41,22 +46,19 @@ export class SolaredgeInverter {
       .onGet(this.getCurrentPower.bind(this));
 
     setInterval(() => {
-      const power = this.getCurrentPower();
+      const power = this.updateCurrentPower();
 
       this.service.updateCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, power);
       this.platform.log.debug('Updating Ambient Light Level: ', power);
     }, this.updateInterval * 1000);
   }
 
-  private getCurrentPower() {
+  private updateCurrentPower() {
     const client = new ModbusRTU();
-
-    let currentPower = 0.0001;
-
     const networkErrors = ['ESOCKETTIMEDOUT', 'ETIMEDOUT', 'ECONNRESET', 'ECONNREFUSED', 'EHOSTUNREACH'];
 
     // try to connect
-    this.platform.log.debug('Connecting to', this.host);
+    this.platform.log.debug('Connecting to', this.accessory.displayName, 'at', this.host);
     client.connectTCP(this.host, {port: this.port}).then(setClient)
       .then(() => {
         this.platform.log.debug('Connected');
@@ -72,18 +74,16 @@ export class SolaredgeInverter {
 
     function setClient() {
       client.setID(1);
-
-      // run program
       readRegisters();
     }
 
     const readRegisters = () => {
-      client.readHoldingRegisters(40084, 2)
+      client.readHoldingRegisters(40083, 2)
         .then((d) => {
           this.platform.log.debug('Received:', d.data);
-          currentPower = d.data[0] * 10 ** (d.data[1]-65536);
-          this.platform.log.debug('Computed:', currentPower);
-          currentPower = Math.max(currentPower, 0.0001);
+          const tmpPower = d.data[0] * 10 ** (d.data[1]-65536);
+          this.platform.log.debug('Computed:', tmpPower);
+          this.currentPower = Math.max(tmpPower, 0.0001);
 
         })
         .catch((e) => {
@@ -98,6 +98,10 @@ export class SolaredgeInverter {
       });
     };
 
-    return currentPower;
+    return this.currentPower;
+  }
+
+  getCurrentPower() {
+    return this.currentPower;
   }
 }

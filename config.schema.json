@@ -11,23 +11,35 @@
         "required": true,
         "default": "SolaredgeRealTime"
       },
-      "ip": {
-        "title": "IP-Address",
-        "type": "string",
-        "required": true,
-        "default": "192.168.1.42"
-      },
-      "port": {
-        "title": "Port",
-        "type": "number",
-        "required": false,
-        "default": ""
-      },
-      "updateInterval": {
-        "title": "Update Interval",
-        "type": "number",
-        "required": false,
-        "default": "10"
+      "inverter": {
+        "title": "Inverter",
+        "type": "array",
+        "items": {
+          "displayName": {
+            "title": "Name to display in Homekit",
+            "type": "string",
+            "required": true,
+            "default": "Inverter"
+          },
+          "ip": {
+            "title": "IP-Address",
+            "type": "string",
+            "required": true,
+            "default": "192.168.1.42"
+          },
+          "port": {
+            "title": "Port",
+            "type": "number",
+            "required": false,
+            "default": ""
+          },
+          "updateInterval": {
+            "title": "Update Interval",
+            "type": "number",
+            "required": false,
+            "default": "10"
+          }
+        }
       }
     }
   }
