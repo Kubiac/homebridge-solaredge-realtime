@@ -1,7 +1,7 @@
 This is a plugin to monitor one or even many SolarEdge inverter in realtime through the modbus-protocol. You need to activate the Modbus communication on your inverter first. This can be done via the display menu (if model has a display) or via the SetApp configuration website.
 
 Example Config:
-```aidl
+```json
 {
 	"platforms": [
 		{
