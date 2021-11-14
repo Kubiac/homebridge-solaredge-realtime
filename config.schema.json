@@ -6,19 +6,19 @@
     "type": "object",
     "properties": {
       "ip": {
-        "title": "ip",
+        "title": "IP-Address",
         "type": "string",
         "required": true,
         "default": "192.168.1.42"
       },
       "port": {
-        "title": "port",
+        "title": "Port",
         "type": "number",
         "required": false,
         "default": "1502"
       },
-      "updateInterva;": {
-        "title": "updateInterval",
+      "updateInterval": {
+        "title": "Update Interval",
         "type": "number",
         "required": false,
         "default": "10"
