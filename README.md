@@ -4,23 +4,23 @@ This is a plugin to monitor one or even many SolarEdge inverter in realtime thro
 Example Config:
 ```json
 {
-	"platforms": [
-		{
-			"name" : "SolaredgeRealTime",
-			"inverter" : [
-				{
-					"displayName" : "Photovoltaik",
-					"ip" : "10.0.1.30"
-				},
-				{
-					"displayName" : "Windkraft",
-					"ip" : "10.0.1.31",
-					"port" : 502,
-					"updateInterval" : 60
-				}
-			],
-			"platform" : "SolaredgeRealTime"
-		}
-	]
+  "platforms": [
+    {
+      "name" : "SolaredgeRealTime",
+      "inverter" : [
+        {
+          "displayName" : "Photovoltaik",
+          "ip" : "10.0.1.30",
+          "updateInterval" : 10
+        },
+        {
+          "displayName" : "Windkraft",
+          "ip" : "10.0.1.31",
+          "updateInterval" : 60
+        }
+      ],
+      "platform" : "SolaredgeRealTime"
+    }
+  ]
 }
 ```
