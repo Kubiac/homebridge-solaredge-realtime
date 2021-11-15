@@ -33,13 +33,13 @@
               "title": "Port",
               "type": "number",
               "required": false,
-              "default": ""
+              "default": "1502"
             },
             "updateInterval": {
-              "title": "Update Interval",
+              "title": "Update Interval in Seconds",
               "type": "number",
               "required": false,
-              "default": "10"
+              "default": "60"
             }
           }
         }

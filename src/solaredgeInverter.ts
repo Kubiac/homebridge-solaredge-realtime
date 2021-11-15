@@ -11,6 +11,7 @@ import ModbusRTU from 'modbus-serial';
  */
 export class SolaredgeInverter {
   private service: Service;
+  private readonly displayName;
   private readonly host;
   private readonly port;
   private readonly updateInterval;
@@ -21,6 +22,7 @@ export class SolaredgeInverter {
     private readonly accessory: PlatformAccessory,
   ) {
     // load all information from context
+    this.displayName = accessory.context.device.displayName;
     this.host = accessory.context.device.ip;
     this.port = accessory.context.device.port || 1502;
     this.updateInterval = accessory.context.device.updateInterval || 60;
@@ -37,8 +39,8 @@ export class SolaredgeInverter {
       || this.accessory.addService(this.platform.Service.LightSensor);
 
     // set the service name, this is what is displayed as the default name on the Home app
-    // in this example we are using the name we stored in the `accessory.context` in the `discoverDevices` method.
-    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.exampleDisplayName);
+    // in this example we are using the name we loaded from the `accessory.context` in the `discoverDevices` method.
+    this.service.setCharacteristic(this.platform.Characteristic.Name, this.displayName);
 
     // each service must implement at-minimum the "required characteristics" for the given service type
     // see https://developers.homebridge.io/#/service/LightSensor
