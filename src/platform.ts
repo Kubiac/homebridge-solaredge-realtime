@@ -13,7 +13,7 @@ export class SolaredgeRealTimePlatform implements DynamicPlatformPlugin {
   public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
 
   // this is used to track restored cached accessories
-  public readonly accessories: PlatformAccessory[] = [];
+  public accessories: PlatformAccessory[] = [];
 
   constructor(
     public readonly log: Logger,
@@ -27,13 +27,19 @@ export class SolaredgeRealTimePlatform implements DynamicPlatformPlugin {
     // in order to ensure they weren't added to homebridge already. This event can also be used
     // to start discovery of new accessories.
     this.api.on('didFinishLaunching', () => {
-      log.info('loaded Config: ' + this.config.message);
       log.debug('Executed didFinishLaunching callback');
-      // remove all restored accessories
-      let accessory: PlatformAccessory | undefined;
-      while ((accessory = this.accessories.pop()) !== undefined) {
+      // remove all accessories not configured any more
+      this.accessories = this.accessories.filter((accessory) => {
+        if (this.config.inverter.map(i => this.api.hap.uuid.generate(i.id)).includes(accessory.UUID)) {
+          // accessory is in config, keep
+          return true;
+        }
+        // accessory is not configured any more, unregister and remove
+        log.info('Removed cached accessory: ' + accessory.displayName);
         this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
-      }
+        return false;
+      });
+
       // load devices from config
       this.discoverDevices();
     });
@@ -51,15 +57,12 @@ export class SolaredgeRealTimePlatform implements DynamicPlatformPlugin {
   }
 
   discoverDevices() {
-    const exampleDevices = this.config.inverter;
-
     // loop over the discovered devices and register each one if it has not already been registered
-    for (const device of exampleDevices) {
-
+    for (const device of this.config.inverter) {
       // generate a unique id for the accessory this should be generated from
       // something globally unique, but constant, for example, the device serial
       // number or MAC address
-      const uuid = this.api.hap.uuid.generate(device.displayName + '-' + device.ip + '-' + device.port);
+      const uuid = this.api.hap.uuid.generate(device.id);
 
       // see if an accessory with the same uuid has already been registered and restored from
       // the cached devices we stored in the `configureAccessory` method above
@@ -83,7 +86,7 @@ export class SolaredgeRealTimePlatform implements DynamicPlatformPlugin {
         // this.log.info('Removing existing accessory from cache:', existingAccessory.displayName);
       } else {
         // the accessory does not yet exist, so we need to create it
-        this.log.info('Adding new accessory:', device.displayName);
+        this.log.info('Adding new accessory:', device.id);
 
         // create a new accessory
         const accessory = new this.api.platformAccessory(device.displayName, uuid);

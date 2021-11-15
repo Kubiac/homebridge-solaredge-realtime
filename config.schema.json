@@ -17,6 +17,12 @@
         "items": {
           "type": "object",
           "properties": {
+            "id": {
+              "title": "Some ID, if it is changed room and automations in Home-App may be reset",
+              "type": "string",
+              "required": true,
+              "default": "Inverter-1"
+            },
             "displayName": {
               "title": "Name to display in Homekit",
               "type": "string",
