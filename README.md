@@ -9,14 +9,16 @@ Example Config:
       "name" : "SolaredgeRealTime",
       "inverter" : [
         {
+          "id" : "myInverter-1",
           "displayName" : "Photovoltaik",
-          "ip" : "10.0.1.30",
-          "updateInterval" : 10
+          "ip" : "10.0.1.30"
         },
         {
+          "id" : "myInverter-2",
           "displayName" : "Windkraft",
           "ip" : "10.0.1.31",
-          "updateInterval" : 60
+          "port" : 1502,
+          "updateInterval" : 30
         }
       ],
       "platform" : "SolaredgeRealTime"
