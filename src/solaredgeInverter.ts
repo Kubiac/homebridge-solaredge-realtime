@@ -16,7 +16,7 @@ export class SolaredgeInverter {
   private readonly host;
   private readonly port;
   private readonly updateInterval;
-  private currentPower = 0.0001;
+  private currentPower;
   private client;
 
   private networkErrors = ['ESOCKETTIMEDOUT', 'ETIMEDOUT', 'ECONNRESET', 'ECONNREFUSED', 'EHOSTUNREACH'];
@@ -31,6 +31,7 @@ export class SolaredgeInverter {
     this.host = accessory.context.device.ip;
     this.port = accessory.context.device.port || 1502;
     this.updateInterval = accessory.context.device.updateInterval || 60;
+    this.currentPower = 0.0001;
 
     this.client = new ModbusRTU();
     this.client.setID(1);
@@ -56,10 +57,7 @@ export class SolaredgeInverter {
       .onGet(this.getCurrentPower.bind(this));
 
     setInterval(() => {
-      const power = this.updateCurrentPower();
-
-      this.service.updateCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, power);
-      this.platform.log.debug('Updating Ambient Light Level: ', power);
+      this.updateCurrentPower();
     }, this.updateInterval * 1000);
   }
 
@@ -78,6 +76,7 @@ export class SolaredgeInverter {
           }
         }
         this.platform.log.error(e.message);
+        return undefined;
       });
 
     const readRegisters = () => {
@@ -90,8 +89,15 @@ export class SolaredgeInverter {
         })
         .catch((e) => {
           this.platform.log.error(e.message);
+          return undefined;
         })
+        .then(pushValue)
         .then(close);
+    };
+
+    const pushValue = () => {
+      this.service.updateCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, this.currentPower);
+      this.platform.log.debug('Updating Ambient Light Level: ', this.currentPower);
     };
 
     const close = () => {
@@ -99,8 +105,6 @@ export class SolaredgeInverter {
         this.platform.log.debug('closed connection to', this.host);
       });
     };
-
-    return this.currentPower;
   }
 
   getCurrentPower() {
