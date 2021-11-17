@@ -87,11 +87,11 @@ export class SolaredgeInverter {
           this.platform.log.debug('Computed:', tmpPower);
           this.currentPower = Math.max(tmpPower, 0.0001);
         })
+        .then(pushValue)
         .catch((e) => {
           this.platform.log.error(e.message);
           return undefined;
         })
-        .then(pushValue)
         .then(close);
     };
 
