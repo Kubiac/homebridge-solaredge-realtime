@@ -83,9 +83,11 @@ export class SolaredgeInverter {
       this.client.readHoldingRegisters(40083, 2)
         .then((d) => {
           this.platform.log.debug('Received:', d.data);
-          const tmpPower = d.data[0] * 10 ** (d.data[1]-65536);
-          this.platform.log.debug('Computed:', tmpPower);
-          this.currentPower = Math.max(tmpPower, 0.0001);
+          const tmpPower = this.computeResult(d.data[0], d.data[1]);
+          // if data was not consistent undefined value is returned
+          if (tmpPower) {
+            this.currentPower = tmpPower;
+          }
         })
         .then(pushValue)
         .catch((e) => {
@@ -107,7 +109,17 @@ export class SolaredgeInverter {
     };
   }
 
-  getCurrentPower() {
+  computeResult(factor : number, scalingFactor : number) : number | undefined {
+    if (scalingFactor === 0 && factor !== 0) {
+      this.platform.log.debug('Data was not consistent, not updating value.');
+      return undefined;
+    }
+    const result = factor * 10 ** (scalingFactor - 65536);
+    this.platform.log.debug('Computed:', result);
+    return Math.max(result, 0.0001);
+  }
+
+  getCurrentPower() : number {
     return this.currentPower;
   }
 }
