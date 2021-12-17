@@ -29,8 +29,8 @@ export class SolaredgeInverter {
     this.id = accessory.context.device.id;
     this.displayName = accessory.context.device.displayName;
     this.host = accessory.context.device.ip;
-    this.port = accessory.context.device.port || 1502;
-    this.updateInterval = accessory.context.device.updateInterval || 60;
+    this.port = accessory.context.device.port ?? 1502;
+    this.updateInterval = accessory.context.device.updateInterval ?? 60;
     this.currentPower = 0.0001;
 
     this.client = new ModbusRTU();
