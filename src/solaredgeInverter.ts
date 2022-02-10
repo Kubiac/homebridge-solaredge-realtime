@@ -18,6 +18,7 @@ export class SolaredgeInverter {
   private readonly updateInterval;
   private currentPower;
   private client;
+  private meter;
 
   private networkErrors = ['ESOCKETTIMEDOUT', 'ETIMEDOUT', 'ECONNRESET', 'ECONNREFUSED', 'EHOSTUNREACH'];
 
@@ -32,6 +33,7 @@ export class SolaredgeInverter {
     this.host = config.ip;
     this.port = config.port ?? 1502;
     this.updateInterval = config.updateInterval ?? 60;
+    this.meter = config.meter ?? 0;
     this.currentPower = 0.0001;
 
     this.client = new ModbusRTU();
@@ -81,10 +83,40 @@ export class SolaredgeInverter {
       });
 
     const readRegisters = () => {
-      this.client.readHoldingRegisters(40083, 2)
+      let powerAdd = 40083;
+      let sfAdd = 40084;
+
+      if (this.meter === 1) {
+        powerAdd = 40206;
+        sfAdd = 40210;
+      } else if (this.meter === 2) {
+        powerAdd = 40380;
+        sfAdd = 40384;
+      }
+
+      let power = 0;
+      this.client.readHoldingRegisters(powerAdd, 1)
         .then((d) => {
-          this.platform.log.debug('Received:', d.data);
-          const tmpPower = this.computeResult(d.data[0], d.data[1]);
+          this.platform.log.debug('Received Power: ', d.data);
+          power = d.data[0];
+        }).catch((e) => {
+          this.platform.log.error(e.message);
+          return undefined;
+        });
+
+      let sf = 0;
+      this.client.readHoldingRegisters(sfAdd, 1)
+        .then((d) => {
+          this.platform.log.debug('Received SF: ', d.data);
+          sf = d.data[0];
+        })
+        .catch((e) => {
+          this.platform.log.error(e.message);
+          return undefined;
+        })
+        .then(close)
+        .then(() => {
+          const tmpPower = this.computeResult(power, sf);
           // if data was not consistent undefined value is returned
           if (tmpPower) {
             this.currentPower = tmpPower;
@@ -94,8 +126,7 @@ export class SolaredgeInverter {
         .catch((e) => {
           this.platform.log.error(e.message);
           return undefined;
-        })
-        .then(close);
+        });
     };
 
     const pushValue = () => {

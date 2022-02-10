@@ -46,6 +46,12 @@
               "type": "number",
               "required": false,
               "default": "60"
+            },
+            "meter": {
+              "title": "Which meter should be read (0 means inverter output; 1 is grid connection, mostly)",
+              "type": "number",
+              "required": false,
+              "default": "0"
             }
           }
         }
