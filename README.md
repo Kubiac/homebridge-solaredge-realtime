@@ -18,7 +18,8 @@ Example Config:
           "displayName" : "Windkraft",
           "ip" : "10.0.1.31",
           "port" : 1502,
-          "updateInterval" : 30
+          "updateInterval" : 30,
+          "meter" : 1
         }
       ],
       "platform" : "SolaredgeRealTime"
