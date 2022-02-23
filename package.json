@@ -1,7 +1,7 @@
 {
   "displayName": "Solaredge Real Time Monitoring",
   "name": "homebridge-solaredge-realtime",
-  "version": "0.9.13",
+  "version": "0.10.0",
   "description": "With this plugin you can read the current power output of you solaredge inverter via Modbus in arbitrary intervals.",
   "license": "Apache-2.0",
   "repository": {
