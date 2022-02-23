@@ -83,32 +83,30 @@ export class SolaredgeInverter {
       });
 
     const readRegisters = () => {
-      let powerAdd = 40083;
-      let sfAdd = 40084;
-
-      if (this.meter === 1) {
-        powerAdd = 40206;
-        sfAdd = 40210;
-      } else if (this.meter === 2) {
-        powerAdd = 40380;
-        sfAdd = 40384;
-      }
+      const powerAdd = this.config.powerAddress ?? 40083;
+      const sfAdd = this.config.powerSfAddress ?? 40084;
+      const unsignedValue = this.config.powerUnsignedValue ?? true;
 
       let power = 0;
       this.client.readHoldingRegisters(powerAdd, 1)
         .then((d) => {
           this.platform.log.debug('Received Power: ', d.data);
-          power = d.data[0];
+          if (unsignedValue) {
+            power = d.data[0];
+          } else {
+            power = d.data[0] - 65536;
+          }
+          this.platform.log.debug('Interpreted power value: ', power);
         }).catch((e) => {
           this.platform.log.error(e.message);
           return undefined;
         });
 
-      let sf = 0;
+      let powerScalingFactor = 0;
       this.client.readHoldingRegisters(sfAdd, 1)
         .then((d) => {
           this.platform.log.debug('Received SF: ', d.data);
-          sf = d.data[0];
+          powerScalingFactor = d.data[0] - 65536;
         })
         .catch((e) => {
           this.platform.log.error(e.message);
@@ -116,7 +114,7 @@ export class SolaredgeInverter {
         })
         .then(close)
         .then(() => {
-          const tmpPower = this.computeResult(power, sf);
+          const tmpPower = this.computeResult(power, powerScalingFactor);
           // if data was not consistent undefined value is returned
           if (tmpPower) {
             this.currentPower = tmpPower;
@@ -141,12 +139,12 @@ export class SolaredgeInverter {
     };
   }
 
-  computeResult(factor : number, scalingFactor : number) : number | undefined {
-    if (scalingFactor === 0 && factor !== 0) {
+  computeResult(value : number, scalingFactor : number) : number | undefined {
+    if (scalingFactor === 0 && value !== 0) {
       this.platform.log.debug('Data was not consistent, not updating value.');
       return undefined;
     }
-    const result = factor * 10 ** (scalingFactor - 65536);
+    const result = value * 10 ** (scalingFactor);
     this.platform.log.debug('Computed:', result);
     return Math.max(result, 0.0001);
   }

@@ -47,11 +47,23 @@
               "required": false,
               "default": "60"
             },
-            "meter": {
-              "title": "Which meter should be read (0 means inverter output; 1 is grid connection, mostly)",
+            "powerAddress": {
+              "title": "Which register should be read for power value",
               "type": "number",
               "required": false,
-              "default": "0"
+              "default": "40083"
+            },
+            "powerSfAddress": {
+              "title": "Which register should be read for the scaling factor of the power value",
+              "type": "number",
+              "required": false,
+              "default": "40084"
+            },
+            "powerUnsignedValue": {
+              "title": "Is the power value signed (i.e. from a meter with export and import) or unsigned (i.e. from the inverter)?",
+              "type": "boolean",
+              "required": false,
+              "default": true
             }
           }
         }
