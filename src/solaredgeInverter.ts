@@ -170,10 +170,6 @@ export class SolaredgeInverter {
     if (scalingFactor === undefined) {
       result = value;
     } else {
-      if (scalingFactor === 0 && value !== 0) {
-        this.platform.log.debug('Data was not consistent, not updating value.');
-        return undefined;
-      }
       result = value * 10 ** (scalingFactor);
     }
 
