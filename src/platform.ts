@@ -24,7 +24,7 @@ export class SolaredgeRealTimePlatform implements DynamicPlatformPlugin {
 
     // When this event is fired it means Homebridge has restored all cached accessories from disk.
     // Dynamic Platform plugins should only register new accessories after this event was fired,
-    // in order to ensure they weren't added to homebridge already. This event can also be used
+    // in order to ensure they weren't added to homebridge already. This event can also be use
     // to start discovery of new accessories.
     this.api.on('didFinishLaunching', () => {
       log.debug('Executed didFinishLaunching callback');
@@ -63,14 +63,16 @@ export class SolaredgeRealTimePlatform implements DynamicPlatformPlugin {
       // something globally unique, but constant, for example, the device serial
       // number or MAC address
       const uuid = this.api.hap.uuid.generate(device.id);
+      const uuidNeg = this.api.hap.uuid.generate(device.id + '-neg');
 
       // see if an accessory with the same uuid has already been registered and restored from
       // the cached devices we stored in the `configureAccessory` method above
-      const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
+      const existingPosAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
+      const existingNegAccessory = this.accessories.find(accessory => accessory.UUID === uuidNeg);
 
-      if (existingAccessory) {
+      if (existingPosAccessory) {
         // the accessory already exists
-        this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
+        this.log.info('Restoring existing accessory from cache:', existingPosAccessory.displayName);
 
         // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
         // existingAccessory.context.device = device;
@@ -78,7 +80,7 @@ export class SolaredgeRealTimePlatform implements DynamicPlatformPlugin {
 
         // create the accessory handler for the restored accessory
         // this is imported from `solaredgeInverter.ts`
-        new SolaredgeInverter(this, existingAccessory, device);
+        new SolaredgeInverter(this, existingPosAccessory, device, true);
 
         // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
         // remove platform accessories when no longer present
@@ -89,18 +91,49 @@ export class SolaredgeRealTimePlatform implements DynamicPlatformPlugin {
         this.log.info('Adding new accessory:', device.id);
 
         // create a new accessory
-        const accessory = new this.api.platformAccessory(device.displayName, uuid);
+        const accessoryPosValues = new this.api.platformAccessory(device.displayName, uuid);
 
         // store a copy of the device object in the `accessory.context`
         // the `context` property can be used to store any data about the accessory you may need
-        accessory.context.device = device;
+        accessoryPosValues.context.device = device;
 
         // create the accessory handler for the newly create accessory
         // this is imported from `solaredgeInverter.ts`
-        new SolaredgeInverter(this, accessory, device);
+        new SolaredgeInverter(this, accessoryPosValues, device);
 
         // link the accessory to your platform
-        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessoryPosValues]);
+
+      }
+
+      if (!device.powerUnsignedValue) {
+        if (existingNegAccessory) {
+          // the accessory already exists
+          this.log.info('Restoring existing accessory from cache:', existingNegAccessory.displayName);
+
+          // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
+          // existingAccessory.context.device = device;
+          // this.api.updatePlatformAccessories([existingAccessory]);
+
+          // create the accessory handler for the restored accessory
+          // this is imported from `solaredgeInverter.ts`
+          new SolaredgeInverter(this, existingNegAccessory, device, false);
+
+          // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
+          // remove platform accessories when no longer present
+          // this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory]);
+          // this.log.info('Removing existing accessory from cache:', existingAccessory.displayName);
+        } else {
+          const accessoryNegValues = new this.api.platformAccessory(device.displayName + ' Neg', uuidNeg);
+          accessoryNegValues.context.device = device;
+
+          // create the accessory handler for the newly create accessory
+          // this is imported from `solaredgeInverter.ts`
+          new SolaredgeInverter(this, accessoryNegValues, device, false);
+
+          // link the accessory to your platform
+          this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessoryNegValues]);
+        }
       }
     }
   }

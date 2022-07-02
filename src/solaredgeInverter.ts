@@ -26,6 +26,7 @@ export class SolaredgeInverter {
     private readonly platform: SolaredgeRealTimePlatform,
     private readonly accessory: PlatformAccessory,
     private readonly config,
+    private readonly positiveValues: boolean = true,
   ) {
     // load all information from context
     this.id = accessory.context.device.id;
@@ -33,6 +34,7 @@ export class SolaredgeInverter {
     this.host = config.ip;
     this.port = config.port ?? 1502;
     this.updateInterval = config.updateInterval ?? 60;
+    this.positiveValues = positiveValues;
     this.meter = config.meter ?? 0;
     this.currentPower = 0.0001;
 
@@ -59,9 +61,15 @@ export class SolaredgeInverter {
     this.service.getCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel)
       .onGet(this.getCurrentPower.bind(this));
 
-    setInterval(() => {
-      this.updateCurrentPower();
-    }, this.updateInterval * 1000);
+    if (this.positiveValues) {
+      setInterval(() => {
+        this.updateCurrentPower();
+      }, this.updateInterval * 1000 - 500);
+    } else {
+      setInterval(() => {
+        this.updateCurrentPower();
+      }, this.updateInterval * 1000 + 500);
+    }
   }
 
   private updateCurrentPower() {
@@ -83,9 +91,37 @@ export class SolaredgeInverter {
       });
 
     const readRegisters = () => {
-      const powerAdd = this.config.powerAddress ?? 40083;
-      const sfAdd = this.config.powerSfAddress ?? 40084;
+      let powerAdd;
+
+      if (this.meter === 0 && this.config.powerAddress !== undefined) {
+        powerAdd = 40083;
+      } else if (this.config.powerAddress !== undefined) {
+        powerAdd = this.config.powerAddress;
+      } else {
+        return undefined;
+      }
+
+      let sfAdd;
+      if (this.meter === 0 && this.config.powerSfAddress !== undefined) {
+        sfAdd = 40084;
+      } else if (this.config.powerSfAddress !== undefined) {
+        sfAdd = this.config.powerSfAddress;
+      }
+
       const unsignedValue = this.config.powerUnsignedValue ?? true;
+
+      let powerScalingFactor:number|undefined = undefined;
+      if (sfAdd !== undefined) {
+        this.client.readHoldingRegisters(sfAdd, 1)
+          .then((d) => {
+            this.platform.log.debug('Received SF: ', d.data);
+            powerScalingFactor = d.data[0] - 65536;
+          })
+          .catch((e) => {
+            this.platform.log.error(e.message);
+            return undefined;
+          });
+      }
 
       let power = 0;
       this.client.readHoldingRegisters(powerAdd, 1)
@@ -98,17 +134,6 @@ export class SolaredgeInverter {
           }
           this.platform.log.debug('Interpreted power value: ', power);
         }).catch((e) => {
-          this.platform.log.error(e.message);
-          return undefined;
-        });
-
-      let powerScalingFactor = 0;
-      this.client.readHoldingRegisters(sfAdd, 1)
-        .then((d) => {
-          this.platform.log.debug('Received SF: ', d.data);
-          powerScalingFactor = d.data[0] - 65536;
-        })
-        .catch((e) => {
           this.platform.log.error(e.message);
           return undefined;
         })
@@ -139,12 +164,23 @@ export class SolaredgeInverter {
     };
   }
 
-  computeResult(value : number, scalingFactor : number) : number | undefined {
-    if (scalingFactor === 0 && value !== 0) {
-      this.platform.log.debug('Data was not consistent, not updating value.');
-      return undefined;
+  computeResult(value : number, scalingFactor : number|undefined) : number | undefined {
+    let result:number;
+
+    if (scalingFactor === undefined) {
+      result = value;
+    } else {
+      if (scalingFactor === 0 && value !== 0) {
+        this.platform.log.debug('Data was not consistent, not updating value.');
+        return undefined;
+      }
+      result = value * 10 ** (scalingFactor);
     }
-    const result = value * 10 ** (scalingFactor);
+
+    if (!this.positiveValues) {
+      result = -1 * result;
+    }
+
     this.platform.log.debug('Computed:', result);
     return Math.max(result, 0.0001);
   }
