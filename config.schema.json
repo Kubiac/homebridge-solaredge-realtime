@@ -60,7 +60,7 @@
               "default": "40084"
             },
             "powerUnsignedValue": {
-              "title": "Is the power value signed (i.e. from a meter with export and import) or unsigned (i.e. from the inverter)?",
+              "title": "Check if the power value is signed (i.e. from a meter with export and import). Uncheck if it is unsigned (i.e. from the inverter)?",
               "type": "boolean",
               "required": false,
               "default": true
