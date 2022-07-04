@@ -115,7 +115,11 @@ export class SolaredgeInverter {
         this.client.readHoldingRegisters(sfAdd, 1)
           .then((d) => {
             this.platform.log.debug('Received SF: ', d.data);
-            powerScalingFactor = d.data[0] - 65536;
+            if (d.data[0] === 0) {
+              powerScalingFactor = 0;
+            } else {
+              powerScalingFactor = d.data[0] - 65536;
+            }
           })
           .catch((e) => {
             this.platform.log.error(e.message);
@@ -177,7 +181,6 @@ export class SolaredgeInverter {
       result = -1 * result;
     }
 
-    this.platform.log.debug('Computed:', result);
     return Math.max(result, 0.0001);
   }
 
